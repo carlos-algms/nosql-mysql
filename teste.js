@@ -1,8 +1,13 @@
 
-nosql = require('./index');
+nosql = require('./index')({
+	user	 : 'root',
+	password : '123456',
+	database : 'teste_db',
+	host	 : 'localhost'
+});
 
 
-nosql()
+nosql
 	.update('users')
 	.set({
 		id	: 10,

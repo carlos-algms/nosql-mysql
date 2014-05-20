@@ -1,16 +1,29 @@
 
 module.exports = is = {
-	
+
 };
 
 is.empty = function() {
-	
-	return [].slice.call(arguments,0).every(function( val, i, varOrig ) {
-		
-		return !( val.length || ('object' === (typeof a) && Object.keys(val).length) );
-		
+
+	var ret = [].slice.call(arguments,0).every( function( val, i, varOrig ) {
+
+		var ret = (
+			!  val 
+			|| val === '0' 
+			|| (
+			  ! val.length 
+			&& (
+			       ('object' === (typeof val)) 
+			    && ( ! Object.keys(val).length )
+			  )
+			)
+		);
+
+		return ret;
 	});
-}
+
+	return ret;
+};
 
 is.string = function( v ) {
 	return ( 'string' === (typeof v) );

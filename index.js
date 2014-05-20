@@ -3,6 +3,7 @@ var mysql		= require('mysql/');
 var SqlString	= require('mysql/lib/protocol/SqlString');
 var is			= require('./is');
 var forEach		= require('./foreach');
+var extend		= require('./extend');
 
 var connCache	= { };
 var lastConn	= null;
@@ -35,7 +36,7 @@ function UserException() {
 	};
 }
 
-module.exports = function noSqlMySql(user, pass, database, host) {
+module.exports = function noSqlMySql( passedParams ) {
 
 	var conParams = {
 		user	 : '',
@@ -44,41 +45,9 @@ module.exports = function noSqlMySql(user, pass, database, host) {
 		host	 : ''
 	};
 	
-	
-
-	/**
-	 * A custom format to use :binds variables.
-	 * This will increase the liberty on query build
-	 * @param {string} query
-	 * @param {Array|Object} values
-	 * @returns {unresolved}
-	 */
-	conParams.queryFormat = function( query, values ) {
-		if( ! values ) {
-			return query;
-		}
-
-		return query.replace(
-			/\:(\w+)/g,
-			function( txt, key ) {
-				if( values.hasOwnProperty( key ) ) {
-					return this.escape( values[key] );
-				}
-
-				return txt;
-			}
-			.bind( this )
-		);
-	};
-
-
-	/*
-	 * Replace defaults with passed params if they are not empty
-	 */
-	user	 && (conParams.user = user);
-	pass	 && (conParams.password = pass);
-	host	 && (conParams.host = host);
-	database && (conParams.database = host);
+	if( ! is.empty(passedParams) ) {
+		conParams = extend(conParams, passedParams);
+	}
 
 
 	/**
