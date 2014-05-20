@@ -1,0 +1,29 @@
+{
+  "name": "nosql-mysql",
+  "version": "0.0.1",
+  "description": "A small library nosql with mysql on nodeJs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/carlos-algms/nosql-mysql.git"
+  },
+  "keywords": [
+    "nosql",
+    "mysql",
+    "crud",
+    "sql",
+    "query"
+  ],
+  "author": "Carlos A. Gomes <carlos.algms@gmail.com> (http://www.agenciawigam.com.br/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/carlos-algms/nosql-mysql/issues"
+  },
+  "homepage": "https://github.com/carlos-algms/nosql-mysql",
+  "dependencies": {
+    "mysql": "~2.3.0"
+  }
+}
