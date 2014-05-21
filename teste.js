@@ -1,4 +1,7 @@
-
+/**
+ * 
+ * @type noSqlMySql.pub
+ */
 nosql = require('./index')({
 	user	 : 'root',
 	password : '123456',
@@ -7,19 +10,32 @@ nosql = require('./index')({
 });
 
 
-nosql
-	.update('users')
-	.set({
-		id	: 10,
-		name: 'Geremias',
-		age	: 25
-	})
-	.where({
-		id	: 1
-	})
-	.limit(100, 0)
-	.getSqlStr(function( sql ) {
-			console.log( sql );
-	});
+//nosql
+//	.update('users')
+//	.set({
+//		id	: 10,
+//		name: 'Geremias',
+//		age	: 25
+//	})
+//	.where({
+//		id	: 1
+//	})
+//	.limit(100, 0)
+//	.getSqlStr(function( sql ) {
+//			console.log( sql );
+//	});
+	
+	
+//	
+//nosql
+//	.deleteFrom('users')
+//	.where({
+//		id	: 1,
+//		age	: [ '>= ', 10 ]
+//	})
+//	.limit(100, 0)
+//	.getSqlStr(function( sql ) {
+//		console.log( sql );
+//	});
 	
 	

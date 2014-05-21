@@ -47,7 +47,7 @@ function noSqlMySql( passedParams ) {
 	
 	/**
 	 * Reset variables to start a new query.
-	 * @returns {wgDb.db}
+	 * @returns {noSqlMySql.pub}
 	 */
 	pub.resetQueries = function resetQueries() {
 		binds		= {};
@@ -166,7 +166,7 @@ function noSqlMySql( passedParams ) {
 	/**
 	 * Precess the SELECT part of the sql
 	 * @param {Array|Object|String} cols Strings are concateneted, Arrays are joined and <br />Objects are processed and used as alias
-	 * @returns {wgDb.db}
+	 * @returns {noSqlMySql.pub}
 	 */
 	pub.select = function select( cols ) {
 
@@ -214,7 +214,7 @@ function noSqlMySql( passedParams ) {
 	/**
 	 * process the FROM part of the sql
 	 * @param {String} tableName
-	 * @returns {wgDb.db}
+	 * @returns {noSqlMySql.pub}
 	 */
 	pub.from = function from( tableName ) {
 
@@ -234,7 +234,7 @@ function noSqlMySql( passedParams ) {
 	/**
 	 * Process the WHERE part of SQL
 	 * @param {Array|Object|String} where
-	 * @returns {wgDb.db}
+	 * @returns {noSqlMySql.pub}
 	 */
 	pub.where = function where( where ) {
 		return processWhere(where, 'AND');
@@ -243,7 +243,7 @@ function noSqlMySql( passedParams ) {
 
 	/**
 	 * @param {Array|Object|String} where
-	 * @returns {wgDb.db}
+	 * @returns {noSqlMySql.pub}
 	 */
 	pub.whereOr = function whereOr( where ) {
 		return processWhere(where, 'OR');
@@ -255,7 +255,7 @@ function noSqlMySql( passedParams ) {
 	 * If is array/object, iterate into it and add binds to corretly escape then.
 	 * @param {Array|Object} where
 	 * @param {String} typeOfWhere Could be: 'AND' or 'OR'
-	 * @returns {wgDb.db}
+	 * @returns {noSqlMySql.pub}
 	 */
 	processWhere = function(where, typeOfWhere) {
 
@@ -324,7 +324,7 @@ function noSqlMySql( passedParams ) {
 	 *
 	 * @param {Number} limit
 	 * @param {Number} offset
-	 * @returns {wgDb.db}
+	 * @returns {noSqlMySql.pub}
 	 */
 	pub.limit = function limit(limit, offset) {
 		if( limit ) {
@@ -345,7 +345,7 @@ function noSqlMySql( passedParams ) {
 	 * Process the ORDER BY part of the sql
 	 * @param {String} col The name of a collumn or a valid Alias
 	 * @param {String} dir ASC or DESC
-	 * @returns {wgDb.db}
+	 * @returns {noSqlMySql.pub}
 	 */
 	pub.orderBy = function orderBy( col, dir ) {
 
@@ -370,16 +370,26 @@ function noSqlMySql( passedParams ) {
 	};
 	
 	
-	
-	pub.delete = function() {
-		//TODO implement delete
+	/**
+	 * Generate DELETE FROM parte os sql
+	 * This method could be called 1 time per execution.
+	 * It will erase the current sql and start a new one.
+	 * @param {String} tableName
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.deleteFrom = function( tableName ) {
+		startOfSql = 'DELETE ';
+		pub.from( tableName );
+		
 		return pub;
 	};
+	
 	
 	pub.join = function() {
 		//TODO implement join
 		return pub;
 	};
+	
 	
 	pub.like = function() {
 		//TODO implement like
@@ -429,7 +439,7 @@ function noSqlMySql( passedParams ) {
 	/**
 	 * Execute the current SQL used via ActiveRecord
 	 * @param {Function} fnc
-	 * @returns {wgDb.db}
+	 * @returns {noSqlMySql.pub}
 	 */
 	pub.execute = function execute( fnc ) {
 		buildSql();
