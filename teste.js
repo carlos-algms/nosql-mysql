@@ -44,19 +44,26 @@ var forEach		= require('./libs/foreach');
 nosql
 	.select('*')
 	.from('users_tb')
-	.where({
-		id	: 1,
-		age : [ '>=', 18 ]
-	})
-	.where('name', 'carlos')
-	.orWhere('orders', ['<=', 150])
-	.like({
-		nome : 'carlos' 
-	}, nosql.RIGHT)
-	.orNotLike({
-		nome : 'carlos' 
-	}, nosql.NONE)
-	.notLike('sobreNome', 'gomes')
+//	.where({
+//		id	: 1,
+//		age : [ '>=', 18 ]
+//	})
+//	.where('name', 'carlos')
+//	.orWhere('orders', ['<=', 150])
+//	.like({
+//		nome : 'carlos' 
+//	}, nosql.RIGHT)
+//	.orNotLike({
+//		nome : 'carlos' 
+//	}, nosql.NONE)
+//	.notLike('sobreNome', 'gomes')
+	.where('( 1 = 1 )')
+	.where('( 2 = 2 )')
+	.orWhere('( 2 = 2 )')
+	.whereIn('age', ['a', 30, 45] )
+	.orWhereIn('age', [50, 'b', 45] )
+	.whereNotIn('age', [50, 30, 'c'] )
+	.orWhereNotIn('age', [50, 30, 'd'] )
 	.getSqlStr(function( sql ) {
 		console.log( sql );
 	});

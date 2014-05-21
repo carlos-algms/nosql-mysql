@@ -265,30 +265,79 @@ function noSqlMySql( passedParams ) {
 		return processWhere(field, value, 'OR ');
 	};
 	
+	/**
+	 * 
+	 * @param {String} field
+	 * @param {String|Number|Array} value
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.whereIn = function( field, value ) {
+		
+		return preWhereIn(field, value, 'AND', 'IN');
+	};
 	
-	pub.whereIn = function() {
-		//TODO implement where in
-		return pub;
+	/**
+	 * 
+	 * @param {String} field
+	 * @param {String|Number|Array} value
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.orWhereIn = function( field, value ) {
+		
+		return preWhereIn(field, value, 'OR', 'IN');
+	};
+	
+	/**
+	 * 
+	 * @param {String} field
+	 * @param {String|Number|Array} value
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.whereNotIn = function(field, value) {
+		return preWhereIn(field, value, 'AND', 'NOT IN');
+	};
+	
+	/**
+	 * @param {String} field
+	 * @param {String|Number|Array} value
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.orWhereNotIn = function(field, value) {
+		return preWhereIn(field, value, 'OR', 'NOT IN');
 	};
 	
 	
-	pub.orWhereIn = function() {
-		//TODO implement where in OR
-		return pub;
+	/**
+	 * 
+	 * @param {String} field
+	 * @param {String|Number|Array} value
+	 * @param {String} operator
+	 * @param {String} type
+	 * @returns {noSqlMySql.pub}
+	 */
+	var preWhereIn	= function(field, value, operator, type ) {
+		
+		if( ! is.array(value) ) {
+			value = [value];
+		}
+		
+		
+		value = value.map(function( v, i ){
+			if( is.string(v) ) {
+				v = SqlString.escape(v);
+			}
+			
+			return v;
+		});
+		
+		value = '( '+ value.join(', ') +' )';
+		
+		field = field + ' ' + type + value;
+		value = null;
+		
+		return processWhere(field, value, operator, type);
 	};
 	
-	
-	pub.whereNotIn = function() {
-		//TODO implement where not in
-		return pub;
-	};
-	
-	
-	pub.orWhereNotIn = function() {
-		//TODO implement where not in OR
-		return pub;
-	};
-
 
 	/**
 	 * 
@@ -407,7 +456,6 @@ function noSqlMySql( passedParams ) {
 			field = null;
 		}
 		
-		
 		var separator = '';
 
 		/*
@@ -449,13 +497,11 @@ function noSqlMySql( passedParams ) {
 		}
 		
 		
-		
-		
 		if( field === null && ! is.object(where) ) {
-			whereStr += separator + where;
+//			whereStr += separator + where;
 			
 			if( is.string(where) ) {
-				whereStr += separator + SqlString.escapeId(field) + type + SqlString.escape(where);
+				whereStr += separator + where;
 			} 
 			else {
 				throw "if not passed the field name, the where must be a String or an Object.";
@@ -468,6 +514,8 @@ function noSqlMySql( passedParams ) {
 				where[field] = tmp;
 			}
 			
+			var isInType = (type.indexOf('IN') > -1);
+			
 			forEach(where, function(col, val) {
 				whereStr += separator + SqlString.escapeId(col);
 
@@ -477,7 +525,11 @@ function noSqlMySql( passedParams ) {
 				if( is.array(val) ) {
 					whereStr += ' ' + val[0] + ' ' + SqlString.escape(val[1]);
 				} else {
-					whereStr += type + SqlString.escape(val);
+					if( isInType ) {
+						
+					} else {
+						whereStr += type + SqlString.escape(val);
+					}
 				}
 
 				/*
