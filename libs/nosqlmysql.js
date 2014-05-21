@@ -97,6 +97,7 @@ function noSqlMySql( passedParams ) {
 		return sql;
 	};
 
+
 	/**
 	 * Process the UPDATE part of the sql
 	 * @param {String} tableName
@@ -240,9 +241,38 @@ function noSqlMySql( passedParams ) {
 		return pub;
 	};
 	
-	
-	pub.join = function() {
-		//TODO implement join
+	/**
+	 * 
+	 * @param {String} tableName
+	 * @param {String} colA
+	 * @param {String} colB
+	 * @param {Int} side Default INNER | LEFT | RIGHT
+	 * @param {String} operator Default '='
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.join = function(tableName, colA, colB, side, operator) {
+		
+		var str = '';
+		
+		switch( side ) {
+			case pub.LEFT   : str = 'LEFT '; break;
+			case pub.RIGHT  : str = 'RIGHT '; break;
+			default			: str = 'INNER ';
+		}
+		
+		if( operator === undefined ) {
+			operator = '=';
+		}
+		
+		operator = ' ' + trim(operator) + ' ';
+		
+		str += 'JOIN ' + SqlString.escapeId(tableName) + 
+				' ON ' + SqlString.escapeId(colA) + 
+						operator + 
+						SqlString.escapeId(colB) + '\n';
+		
+		joinStr += str;
+		
 		return pub;
 	};
 	

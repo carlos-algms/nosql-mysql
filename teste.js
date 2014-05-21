@@ -64,8 +64,9 @@ nosql
 //	.orWhereIn('age', [50, 'b', 45] )
 //	.whereNotIn('age', [50, 30, 'c'] )
 //	.orWhereNotIn('age', [50, 30, 'd'] )
-	.groupBy('age')
-	.groupBy('sum')
+//	.groupBy('age')
+//	.groupBy('sum')
+	.join('courses', 'id', 'idOwner')
 	.getSqlStr(function( sql ) {
 		console.log( sql );
 	});
