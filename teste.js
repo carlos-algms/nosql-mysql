@@ -57,13 +57,15 @@ nosql
 //		nome : 'carlos' 
 //	}, nosql.NONE)
 //	.notLike('sobreNome', 'gomes')
-	.where('( 1 = 1 )')
-	.where('( 2 = 2 )')
-	.orWhere('( 2 = 2 )')
-	.whereIn('age', ['a', 30, 45] )
-	.orWhereIn('age', [50, 'b', 45] )
-	.whereNotIn('age', [50, 30, 'c'] )
-	.orWhereNotIn('age', [50, 30, 'd'] )
+//	.where('( 1 = 1 )')
+//	.where('( 2 = 2 )')
+//	.orWhere('( 2 = 2 )')
+//	.whereIn('age', ['a', 30, 45] )
+//	.orWhereIn('age', [50, 'b', 45] )
+//	.whereNotIn('age', [50, 30, 'c'] )
+//	.orWhereNotIn('age', [50, 30, 'd'] )
+	.groupBy('age')
+	.groupBy('sum')
 	.getSqlStr(function( sql ) {
 		console.log( sql );
 	});

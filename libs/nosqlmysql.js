@@ -40,6 +40,7 @@ function noSqlMySql( passedParams ) {
 		joinStr		= '',
 		whereStr	= '',
 		limitStr	= '',
+		groupByStr	= '',
 		orderByStr	= '';
 
 	
@@ -66,9 +67,10 @@ function noSqlMySql( passedParams ) {
 		joinStr		= '';
 		whereStr	= '';
 		limitStr	= '';
+		groupByStr	= '';
 		orderByStr	= '';
 
-		return this;
+		return pub;
 	};
 
 
@@ -540,8 +542,6 @@ function noSqlMySql( passedParams ) {
 			});
 		}
 
-		
-
 		return pub;
 	};
 
@@ -596,8 +596,21 @@ function noSqlMySql( passedParams ) {
 	};
 	
 	
-	pub.groupBy = function() {
-		//TODO implement groubBy()
+	/**
+	 * 
+	 * @param {String} field
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.groupBy = function(field) {
+		
+		var separator = ', ';
+		
+		if( is.empty(groupByStr) ) {
+			separator = 'GROUP BY ';
+		}
+		
+		groupByStr += separator + field;
+		
 		return pub;
 	};
 	
@@ -680,15 +693,24 @@ function noSqlMySql( passedParams ) {
 		if( ! is.empty(orderByStr) ){
 			parts.push(orderByStr);
 		}
-
+		
+		if( ! is.empty(groupByStr) ){
+			parts.push(groupByStr);
+		}
+		
 		if( ! is.empty(limitStr) ){
 			parts.push(limitStr);
 		}
 
 
 		sql += parts.join('\n');
-
-		return sql;
+		
+		
+		var ret = sql;
+		
+		pub.resetQueries();
+		
+		return ret;
 	};
 
 
