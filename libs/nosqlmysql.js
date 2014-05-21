@@ -3,6 +3,8 @@ var SqlString	= require('mysql/lib/protocol/SqlString');
 var is			= require('./is');
 var forEach		= require('./foreach');
 var extend		= require('./extend');
+var trim		= require('./trim');
+var inArray		= require('./inarray');
 
 var poolManager	= require('./poolmanager');
 
@@ -42,7 +44,13 @@ function noSqlMySql( passedParams ) {
 
 	
 	
-	var pub = {};
+	var pub = {
+		NONE  : 0,
+		LEFT  : 1,
+		RIGHT : 2,
+		BOTH  : 3,
+		INNER : 4
+	};
 	
 	
 	/**
@@ -229,92 +237,258 @@ function noSqlMySql( passedParams ) {
 
 		return pub;
 	};
-
+	
+	
+	pub.join = function() {
+		//TODO implement join
+		return pub;
+	};
+	
 
 	/**
 	 * Process the WHERE part of SQL
-	 * @param {Array|Object|String} where
+	 * @param {String} field The col name in database
+	 * @param {Array|Object|String|Number} value
 	 * @returns {noSqlMySql.pub}
 	 */
-	pub.where = function where( where ) {
-		return processWhere(where, 'AND');
+	pub.where = function where( field, value ) {
+		return processWhere(field, value);
 	};
 
 
 	/**
-	 * @param {Array|Object|String} where
+	 * @param {String} field
+	 * @param {Array|Object|String} value
 	 * @returns {noSqlMySql.pub}
 	 */
-	pub.whereOr = function whereOr( where ) {
-		return processWhere(where, 'OR');
+	pub.orWhere = function whereOr( field, value ) {
+		return processWhere(field, value, 'OR ');
+	};
+	
+	
+	pub.whereIn = function() {
+		//TODO implement where in
+		return pub;
+	};
+	
+	
+	pub.orWhereIn = function() {
+		//TODO implement where in OR
+		return pub;
+	};
+	
+	
+	pub.whereNotIn = function() {
+		//TODO implement where not in
+		return pub;
+	};
+	
+	
+	pub.orWhereNotIn = function() {
+		//TODO implement where not in OR
+		return pub;
+	};
+
+
+	/**
+	 * 
+	 * @param {String|Object} field
+	 * @param {String} value
+	 * @param {String} wildcard left | rigth | both is default
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.like = function(field, value, wildcard) {
+		return preLike(field, value, 'AND', 'LIKE', wildcard);
+	};
+	
+	
+	/**
+	 * @param {String|Object} field
+	 * @param {String|Number|Array} value
+	 * @param {String} wildcard left | rigth | both is default
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.orLike = function( field, value, wildcard ) {
+		return preLike(field, value, 'OR', 'LIKE', wildcard );
+	};
+	
+	
+	/**
+	 * @param {String|Object} field
+	 * @param {String|Number|Array} value
+	 * @param {String} wildcard left | rigth | both is default
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.notLike = function( field, value, wildcard ) {
+		return preLike(field, value, 'AND', 'NOT LIKE', wildcard);
+	};
+	
+	
+	/**
+	 * @param {String|Object} field
+	 * @param {String|Number|Array} value
+	 * @param {String} wildcard left | rigth | both is default
+	 * @returns {noSqlMySql.pub}
+	 */
+	pub.orNotLike = function( field, value, wildcard ) {
+		return preLike(field, value, 'OR', 'NOT LIKE', wildcard);
+	};
+	
+	
+	/**
+	 * @param {String} field
+	 * @param {String|Number|Array|Object} value
+	 * @param {String} operator
+	 * @param {String} type
+	 * @param {String} wildcard
+	 * @returns {noSqlMySql.pub}
+	 */
+	var preLike = function( field, value, operator, type, wildcard ) {
+		
+		if( is.object(field) ) {
+			wildcard = value;
+			value = field;
+			field = null;
+		} 
+		else if( is.array(value) ) {
+			throw 'Like type queries, only accept String, Number or Objects as a value';
+		}
+		
+		if( is.object(value) ) {
+			forEach(value, function(i, v) {
+				value[i] = wrapLikeValues( v, wildcard );
+			});
+		}
+		else {
+			value = wrapLikeValues(value, wildcard);
+		}
+		
+		return processWhere( field, value, operator, type );
+	};
+	
+	
+	/**
+	 * Receive a variable and concatenate % when is necessary
+	 * @param {String|Number} value
+	 * @param {Number} wildcard
+	 * @returns {String}
+	 */
+	var wrapLikeValues = function( value, wildcard ) {
+		value = trim(value, '%');
+		
+		switch( wildcard ) {
+			case pub.NONE  : break;
+			case pub.LEFT  : value = '%' + value; break;
+			case pub.RIGHT : value = value + '%'; break;
+			default		   : value = '%' + value + '%';
+		}
+		
+		return value;
 	};
 
 
 	/**
 	 * Verify if where is a string and add it to current SQL.
 	 * If is array/object, iterate into it and add binds to corretly escape then.
+	 * @param {String} field
 	 * @param {Array|Object} where
-	 * @param {String} typeOfWhere Could be: 'AND' or 'OR'
+	 * @param {String} operator Could be: 'AND' or 'OR'
+	 * @param {String} type Could be '=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN'
 	 * @returns {noSqlMySql.pub}
 	 */
-	processWhere = function(where, typeOfWhere) {
-
-		if( ! is.empty(where) ) {
-
-			/*
-			 * If not passed on parameter, the default type is AND
-			 */
-			if( typeOfWhere === undefined ) {
-				typeOfWhere = 'AND';
+	var processWhere = function(field, where, operator, type) {
+		
+		if( is.empty(where) ) {
+			
+			if( is.empty( where = field ) ) {
+				return pub;
 			}
-
-
-			/*
-			 * This is the type of where that I want to concatenate
-			 * starts with a new line and has a space at the end.
-			 */
-			typeOfWhere = '\n'+typeOfWhere+' ';
-
-			var separator = '';
-
-
-			/*
-			 * If the string not is empty, I need to concatenate the previous one
-			 * with an separator before add this new.
-			 */
-			if( ! is.empty( whereStr ) ) {
-				separator = typeOfWhere;
-			} else {
-				/*
-				 * separator starts as empty spaces to align the final string.
-				 */
-				separator = 'WHERE\n    ';
-			}
-
-
-			if( is.string(where) ) {
-
-				whereStr += separator.concat( where );
-
-			} else {
-
-				forEach(where, function(col, val) {
-					whereStr += separator + SqlString.escapeId(col);
-
-					if( is.array(val) ) {
-						whereStr += ' ' + val[0] + ' ' + SqlString.escape(val[1]);
-					} else {
-						whereStr += ' = ' + SqlString.escape(val);
-					}
-
-					/*
-					 * from now, separator will be the type of where
-					 * because I`m sure the whereStr is not empty anymore
-					 */
-					separator = typeOfWhere;
-				});
-			}
+			
+			field = null;
 		}
+		
+		
+		var separator = '';
+
+		/*
+		 * If not passed on parameter, the default type is AND
+		 */
+		if( operator === undefined ) {
+			operator = 'AND';
+		}
+		
+		/*
+		 * This is the type of where that I want to concatenate
+		 * starts with a new line and has a space at the end.
+		 */
+		operator = '\n'+operator+' ';
+
+
+		/*
+		 * Default type is '=', a normal where. 
+		 */
+		if( type === undefined ) {
+			type = ' = ';
+		} else {
+			type = ' ' + type + ' ';
+		}
+
+
+		/*
+		 * If the string not is empty, I need to concatenate the previous one
+		 * with an separator before add this new.
+		 */
+		if( ! is.empty( whereStr ) ) {
+			separator = operator;
+		} 
+		/*
+		 * Aditional spaces are for identation in final str
+		 */
+		else {
+			separator = 'WHERE\n    ';
+		}
+		
+		
+		
+		
+		if( field === null && ! is.object(where) ) {
+			whereStr += separator + where;
+			
+			if( is.string(where) ) {
+				whereStr += separator + SqlString.escapeId(field) + type + SqlString.escape(where);
+			} 
+			else {
+				throw "if not passed the field name, the where must be a String or an Object.";
+			}
+			
+		} else {
+			if( ! is.object( where ) ) {
+				var tmp = where;
+				where = { };
+				where[field] = tmp;
+			}
+			
+			forEach(where, function(col, val) {
+				whereStr += separator + SqlString.escapeId(col);
+
+				/*
+				 * When is array, index 0 indicates the type and 1 is the value
+				 */
+				if( is.array(val) ) {
+					whereStr += ' ' + val[0] + ' ' + SqlString.escape(val[1]);
+				} else {
+					whereStr += type + SqlString.escape(val);
+				}
+
+				/*
+				 * from now, separator will be the type of where
+				 * because I`m sure the whereStr is not empty anymore
+				 */
+				separator = operator;
+			});
+		}
+
+		
 
 		return pub;
 	};
@@ -370,6 +544,12 @@ function noSqlMySql( passedParams ) {
 	};
 	
 	
+	pub.groupBy = function() {
+		//TODO implement groubBy()
+		return pub;
+	};
+	
+	
 	/**
 	 * Generate DELETE FROM parte os sql
 	 * This method could be called 1 time per execution.
@@ -385,56 +565,6 @@ function noSqlMySql( passedParams ) {
 	};
 	
 	
-	pub.join = function() {
-		//TODO implement join
-		return pub;
-	};
-	
-	
-	pub.like = function() {
-		//TODO implement like
-		return pub;
-	};
-	
-	pub.likeOr = function() {
-		//TODO implement like OR
-		return pub;
-	};
-	
-	pub.likeNot = function() {
-		//TODO implement like not
-		return pub;
-	};
-	
-	pub.likeNotOr = function() {
-		//TODO implement like not OR
-	};
-	
-	pub.whereIn = function() {
-		//TODO implement where in
-		return pub;
-	};
-	
-	pub.whereInOr = function() {
-		//TODO implement where in OR
-		return pub;
-	};
-	
-	pub.whereNotIn = function() {
-		//TODO implement where not in
-		return pub;
-	};
-	
-	pub.whereNotInOr = function() {
-		//TODO implement where not in OR
-		return pub;
-	};
-	
-	pub.groupBy = function() {
-		//TODO implement groubBy()
-		return pub;
-	};
-	
 
 	/**
 	 * Execute the current SQL used via ActiveRecord
@@ -448,6 +578,7 @@ function noSqlMySql( passedParams ) {
 		return executeSql( sql, fnc );
 	};
 	
+	
 	/**
 	 * Process all methods and return the FULL sql string
 	 * @param {Function} fnc
@@ -460,6 +591,7 @@ function noSqlMySql( passedParams ) {
 		
 		return sql;
 	};
+
 
 	/**
 	 * Join all parts of SQL created via ActiveRecord

@@ -1,13 +1,15 @@
 /**
  * 
- * @type noSqlMySql.pub
+ * @type noSqlMySql
  */
-nosql = require('./index')({
+var nosql = require('./index')({
 	user	 : 'root',
 	password : '123456',
 	database : 'teste_db',
 	host	 : 'localhost'
 });
+
+var forEach		= require('./libs/foreach');
 
 
 //nosql
@@ -38,4 +40,23 @@ nosql = require('./index')({
 //		console.log( sql );
 //	});
 	
-	
+
+nosql
+	.select('*')
+	.from('users_tb')
+	.where({
+		id	: 1,
+		age : [ '>=', 18 ]
+	})
+	.where('name', 'carlos')
+	.orWhere('orders', ['<=', 150])
+	.like({
+		nome : 'carlos' 
+	}, nosql.RIGHT)
+	.orNotLike({
+		nome : 'carlos' 
+	}, nosql.NONE)
+	.notLike('sobreNome', 'gomes')
+	.getSqlStr(function( sql ) {
+		console.log( sql );
+	});
