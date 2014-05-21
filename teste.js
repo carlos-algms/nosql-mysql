@@ -18,8 +18,8 @@ nosql
 		id	: 1
 	})
 	.limit(100, 0)
-	.execute(function( e ) {
-		
+	.getSqlStr(function( sql ) {
+			console.log( sql );
 	});
 	
 	
