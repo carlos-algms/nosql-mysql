@@ -24,6 +24,6 @@
   },
   "homepage": "https://github.com/carlos-algms/nosql-mysql",
   "dependencies": {
-    "mysql": "~2.3.0"
+    "mysql": "~2.18.1"
   }
 }
